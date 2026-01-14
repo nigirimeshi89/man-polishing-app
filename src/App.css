@@ -1,0 +1,453 @@
+/* src/App.css */
+
+/* === 変数定義 === */
+:root {
+  --bg-color: #050505;
+  --card-bg: rgba(15, 15, 15, 0.95);
+  --gold-main: #d4af37;
+  --gold-light: #fcf6ba;
+  --gold-dark: #8a6e2f;
+  --gold-gradient: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+  --carbon-pattern:
+    linear-gradient(27deg, #151515 5px, transparent 5px) 0 5px,
+    linear-gradient(207deg, #151515 5px, transparent 5px) 10px 0px,
+    linear-gradient(27deg, #222 5px, transparent 5px) 0px 10px,
+    linear-gradient(207deg, #222 5px, transparent 5px) 10px 5px,
+    linear-gradient(90deg, #1b1b1b 10px, transparent 10px),
+    linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424);
+
+  --font-eng: 'Cinzel', serif;
+  --font-jp: 'Noto Serif JP', serif;
+  --font-num: 'Oswald', sans-serif;
+}
+
+/* === 基本設定 === */
+body {
+  background: var(--carbon-pattern);
+  background-color: var(--bg-color);
+  background-size: 20px 20px;
+  color: #fff;
+  font-family: var(--font-eng);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#root {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* === ヘッダー === */
+header {
+  width: 100%;
+  padding: 20px 0;
+  text-align: center;
+  border-bottom: 1px solid #333;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  margin-bottom: 20px;
+  position: fixed;
+  top: 0;
+  z-index: 100;
+}
+
+.app-logo {
+  font-size: 1.2rem;
+  letter-spacing: 5px;
+  color: var(--gold-light);
+  text-shadow: 0 0 10px var(--gold-dark);
+}
+
+/* === メインコンテナ === */
+.container {
+  width: 90%;
+  max-width: 400px;
+  padding-top: 80px;
+  /* ヘッダー分 */
+  padding-bottom: 100px;
+  /* フッター分 */
+}
+
+/* === 称号エリア === */
+.rank-section {
+  text-align: center;
+  margin-bottom: 20px;
+  animation: fadeIn 1s ease;
+}
+
+.rank-label {
+  font-family: var(--font-num);
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.rank-title {
+  font-size: 2.8rem;
+  line-height: 1;
+  margin: 0;
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-weight: 900;
+  text-transform: uppercase;
+  filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3));
+}
+
+.rank-sub {
+  font-family: var(--font-jp);
+  font-size: 1rem;
+  color: var(--gold-main);
+  margin-top: 5px;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+}
+
+/* === アバター === */
+.avatar-container {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  border: 3px solid var(--gold-main);
+  background: #000;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  overflow: hidden;
+  position: relative;
+  transition: all 0.5s ease;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rank-section:hover .avatar-container {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.8);
+}
+
+/* === チャートカード === */
+.card {
+  background: var(--card-bg);
+  border: 2px solid #333;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+/* 四隅の金装飾 */
+.corner {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border: 2px solid var(--gold-main);
+  transition: 0.3s;
+}
+
+.tl {
+  top: -1px;
+  left: -1px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.tr {
+  top: -1px;
+  right: -1px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.bl {
+  bottom: -1px;
+  left: -1px;
+  border-right: none;
+  border-top: none;
+}
+
+.br {
+  bottom: -1px;
+  right: -1px;
+  border-left: none;
+  border-top: none;
+}
+
+.chart-box {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+/* XPゲージ */
+.xp-container {
+  margin-top: 10px;
+}
+
+.xp-info {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-num);
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-bottom: 5px;
+}
+
+.xp-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: #222;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid #444;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: var(--gold-gradient);
+  width: 0%;
+  transition: width 1s ease-out;
+  box-shadow: 0 0 10px var(--gold-main);
+}
+
+/* === アニメーション === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === アクションボタン === */
+.action-btn {
+  background: var(--gold-gradient);
+  border: none;
+  padding: 15px 30px;
+  color: #000;
+  font-family: var(--font-num);
+  font-weight: bold;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+/* === モーダル共通 === */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  border: 1px solid var(--gold-dark);
+  padding: 30px;
+  width: 90%;
+  max-width: 350px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-title {
+  color: var(--gold-main);
+  text-align: center;
+  font-family: var(--font-eng);
+  margin-top: 0;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+}
+
+/* タブボタン */
+.tab-group {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.tab-group button {
+  flex: 1;
+  background: #111;
+  border: 1px solid #333;
+  color: #666;
+  padding: 10px;
+  cursor: pointer;
+  font-family: var(--font-num);
+}
+
+.tab-group button.active {
+  background: var(--gold-dark);
+  color: #fff;
+  border-color: var(--gold-main);
+}
+
+/* 入力エリア共通 */
+.input-area label {
+  display: block;
+  color: #888;
+  font-size: 0.8rem;
+  margin-bottom: 5px;
+  font-family: var(--font-jp);
+}
+
+.input-area input,
+.input-area select {
+  width: 100%;
+  background: #000;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-family: var(--font-num);
+  font-size: 1.2rem;
+  box-sizing: border-box;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--gold-light);
+  text-align: right;
+  margin-top: -10px;
+  margin-bottom: 20px;
+}
+
+/* モーダル下部ボタン */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-btn {
+  flex: 1;
+  background: transparent;
+  border: 1px solid #444;
+  color: #888;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.confirm-btn {
+  flex: 2;
+  background: var(--gold-main);
+  border: none;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* === リセットボタン === */
+.reset-btn {
+  background: transparent;
+  border: 1px solid #ff4444;
+  color: #ff4444;
+  padding: 8px 20px;
+  font-family: var(--font-num);
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: all 0.3s;
+}
+
+.reset-btn:hover {
+  background: #ff4444;
+  color: #000;
+  opacity: 1;
+  box-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
+}
+
+/* === カスタムチェックボックス (LOOKS用) === */
+.checklist-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #111;
+  padding: 10px;
+  border: 1px solid #333;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.checkbox-row:hover {
+  border-color: var(--gold-main);
+}
+
+/* チェックボックスのデザインカスタマイズ */
+.checkbox-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #000;
+  border: 2px solid var(--gold-dark);
+  border-radius: 4px;
+  margin: 0;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.checkbox-row:hover input[type="checkbox"] {
+  border-color: var(--gold-main);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+.checkbox-row input[type="checkbox"]:checked {
+  background: var(--gold-main);
+  border-color: var(--gold-main);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.8);
+}
+
+.checkbox-row input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  width: 6px;
+  height: 12px;
+  border: solid #000;
+  border-width: 0 3px 3px 0;
+  transform: translate(-50%, -50%) rotate(45deg) scale(0);
+  transition: all 0.2s cubic-bezier(0.5, 0.1, 0.9, 1.5);
+}
+
+.checkbox-row input[type="checkbox"]:checked::after {
+  transform: translate(-50%, -50%) rotate(45deg) scale(1);
+}
