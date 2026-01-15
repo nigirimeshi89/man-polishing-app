@@ -11,6 +11,7 @@ import {
 import { Radar } from 'react-chartjs-2';
 import './App.css';
 import { ActionModal } from './components/ActionModal';
+import { LoadingScreen } from './components/LoadingScreen';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
@@ -159,6 +160,7 @@ function App() {
     if (saved) return JSON.parse(saved);
     return { body: 0, looks: 0, mind: 0, intel: 0, disc: 0 };
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     localStorage.setItem("the-man-exp", JSON.stringify(exp));
@@ -187,15 +189,6 @@ function App() {
     }));
     alert(message);
     setIsModalOpen(false);
-  };
-
-  const handleReset = () => {
-    if (window.confirm("【警告】\n現在のステータスを全てリセットします。\n本当によろしいですか？")) {
-      const initialData = { body: 0, looks: 0, mind: 0, intel: 0, disc: 0 };
-      setExp(initialData);
-      localStorage.removeItem("the-man-exp");
-      alert("データを初期化しました。");
-    }
   };
 
   const chartData = {
@@ -228,11 +221,20 @@ function App() {
 
   return (
     <>
-      <header>
-        <div className="app-logo">THE MAN</div>
-      </header>
+      {/* ロード画面 (isLoadingがtrueの時だけ表示、あるいはフェードアウト演出中は重ねる) */}
+      {isLoading && (
+        <LoadingScreen onFinish={() => setIsLoading(false)} />
+      )}
 
-      <div className="container">
+      {/* メインアプリ (ロードが終わったら表示、でも裏でレンダリングしておいた方がスムーズかも) */}
+      {/* 今回はシンプルに、ロード画面が消えたら操作可能にするスタイルでいきます */}
+
+      <div style={{ opacity: isLoading ? 0 : 1, transition: 'opacity 1s' }}>
+        <header>
+          <div className="app-logo">THE MAN</div>
+        </header>
+
+        <div className="container"></div>
         <div className="rank-section">
           <div className="avatar-container">
             <img src={avatarUrl} alt={title.en} className="avatar-image" />
@@ -303,12 +305,6 @@ function App() {
             🛡️ KEEP DISC
           </button>
         </div>
-      </div>
-
-      <div style={{ textAlign: 'center', marginBottom: '100px' }}>
-        <button className="reset-btn" onClick={handleReset}>
-          ⚠ DATA RESET
-        </button>
       </div>
 
       <ActionModal
