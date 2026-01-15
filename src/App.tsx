@@ -10,7 +10,6 @@ import {
 } from 'chart.js';
 import { Radar } from 'react-chartjs-2';
 import './App.css';
-// ActionModalは components フォルダにある想定です
 import { ActionModal } from './components/ActionModal';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
@@ -23,13 +22,20 @@ type ExpData = {
   disc: number;
 };
 
-// Lv = √ (EXP / 5) 
+// Lv = √ (EXP / 5) (上限1000)
 const calculateLevel = (exp: number) => {
   const level = Math.floor(Math.sqrt(exp / 5));
-  return level > 999 ? 999 : level;
+  return level > 1000 ? 1000 : level;
 };
 
-// === 称号判定 (変更なし) ===
+// 画像のパスを動的に生成する関数
+const getAvatarPath = (titleEn: string) => {
+  // スペースをアンダーバーに置換 (例: "THE ONE" → "THE_ONE")
+  const fileName = titleEn.replace(/ /g, '_');
+  return new URL(`./assets/avatars/${fileName}.png`, import.meta.url).href;
+};
+
+// === 称号判定ロジック (Lv.1000スケール対応版) ===
 const determineTitle = (stats: ExpData) => {
   const levels = {
     body: calculateLevel(stats.body),
@@ -38,24 +44,112 @@ const determineTitle = (stats: ExpData) => {
     intel: calculateLevel(stats.intel),
     disc: calculateLevel(stats.disc),
   };
+
   const vals = Object.values(levels);
-  const avg = vals.reduce((a, x) => a + x, 0) / 5;
-  const max = Math.max(...vals);
+  const minLv = Math.min(...vals);
 
-  const GOD_LV = 800;
-  const S_LV = 100;
+  // === 閾値設定 (MAX Lv.1000) ===
+  const RANK_S = 900;
+  const RANK_A = 750;
+  const RANK_B = 500;
 
-  if (avg >= GOD_LV) return { en: "THE ONE", jp: "- 全能の神 -" };
-  if (avg >= 500) return { en: "GIGACHAD", jp: "- 完全無欠 -" };
+  // --- 5. 神クラス (5つ全てのレベルで判定) ---
+  if (minLv >= RANK_S) return { en: "THE ONE", jp: "- 全能の神 -" };
+  if (minLv >= RANK_A) return { en: "GIGACHAD", jp: "- 完全無欠 -" };
+  if (minLv >= RANK_B) return { en: "LEGEND", jp: "- 生ける伝説 -" };
 
-  if (max >= S_LV) {
-    if (levels.body >= S_LV) return { en: "TITAN", jp: "- 巨人神 -" };
-    if (levels.looks >= S_LV) return { en: "ICON", jp: "- 時代の象徴 -" };
-    if (levels.mind >= S_LV) return { en: "SAINT", jp: "- 聖人 -" };
-    if (levels.intel >= S_LV) return { en: "ORACLE", jp: "- 予言者 -" };
-    if (levels.disc >= S_LV) return { en: "EXECUTOR", jp: "- 執行者 -" };
+  // --- 複合クラス判定用 ---
+  const sRankKeys = (Object.keys(levels) as (keyof ExpData)[]).filter(
+    key => levels[key] >= RANK_S
+  );
+  const sCount = sRankKeys.length;
+
+  // --- 4. 準神クラス (4つがランクS) ---
+  if (sCount === 4) {
+    const missing = (Object.keys(levels) as (keyof ExpData)[]).find(
+      key => levels[key] < RANK_S
+    );
+
+    switch (missing) {
+      case 'mind': return { en: "GLASS ACE", jp: "- 悲劇の天才 -" };
+      case 'intel': return { en: "BERSERKER", jp: "- 破壊神 -" };
+      case 'looks': return { en: "PHANTOM", jp: "- 影の支配者 -" };
+      case 'body': return { en: "MASTERMIND", jp: "- 黒幕 -" };
+      case 'disc': return { en: "JOKER", jp: "- 道化師 -" };
+    }
   }
-  if (avg >= 30) return { en: "ROOKIE", jp: "- 挑戦者 -" };
+
+  // --- 3. 超人クラス (3つがランクS) ---
+  if (sCount === 3) {
+    const missing = (Object.keys(levels) as (keyof ExpData)[]).filter(
+      key => levels[key] < RANK_S
+    );
+    const missingKey = missing.sort().join('-');
+
+    switch (missingKey) {
+      case 'disc-intel': return { en: "HERO", jp: "- 英雄 -" };
+      case 'disc-mind': return { en: "PRINCE", jp: "- 王子 -" };
+      case 'intel-mind': return { en: "ADONIS", jp: "- 美の神 -" };
+      case 'disc-looks': return { en: "SHOGUN", jp: "- 将軍 -" };
+      case 'intel-looks': return { en: "WARLORD", jp: "- 覇王 -" };
+      case 'looks-mind': return { en: "CYBORG", jp: "- 人造人間 -" };
+      case 'body-disc': return { en: "MENTALIST", jp: "- 心理操作官 -" };
+      case 'body-intel': return { en: "PARAGON", jp: "- 模範 -" };
+      case 'body-mind': return { en: "ARISTOCRAT", jp: "- 上級国民 -" };
+      case 'body-looks': return { en: "SAGE", jp: "- 賢者 -" };
+    }
+  }
+
+  // --- 2. 実力者クラス (2つがランクS) ---
+  if (sCount === 2) {
+    const activeKey = sRankKeys.sort().join('-');
+
+    switch (activeKey) {
+      case 'body-looks': return { en: "STAR", jp: "- 銀幕の英雄 -" };
+      case 'body-mind': return { en: "SAMURAI", jp: "- 武士 -" };
+      case 'body-intel': return { en: "COMMANDER", jp: "- 指揮官 -" };
+      case 'body-disc': return { en: "SWAT", jp: "- 特殊部隊 -" };
+      case 'intel-looks': return { en: "INFLUENCER", jp: "- 扇動者 -" };
+      case 'disc-looks': return { en: "AGENT", jp: "- 工作員 -" };
+      case 'looks-mind': return { en: "NOBLE", jp: "- 貴族 -" };
+      case 'disc-intel': return { en: "TYCOON", jp: "- 大富豪 -" };
+      case 'intel-mind': return { en: "PHILOSOPHER", jp: "- 哲学者 -" };
+      case 'disc-mind': return { en: "MONK", jp: "- 僧侶 -" };
+    }
+  }
+
+  // --- 1. 単独クラス判定 ---
+  const bestKey = (Object.keys(levels) as (keyof ExpData)[]).reduce((a, b) =>
+    levels[a] > levels[b] ? a : b
+  );
+  const bestLv = levels[bestKey];
+
+  if (bestKey === 'body') {
+    if (bestLv >= RANK_S) return { en: "TITAN", jp: "- 巨人神 -" };
+    if (bestLv >= RANK_A) return { en: "GLADIATOR", jp: "- 剣闘士 -" };
+    if (bestLv >= RANK_B) return { en: "BOUNCER", jp: "- 用心棒 -" };
+  }
+  if (bestKey === 'looks') {
+    if (bestLv >= RANK_S) return { en: "ICON", jp: "- 時代の象徴 -" };
+    if (bestLv >= RANK_A) return { en: "TOP MODEL", jp: "- トップモデル -" };
+    if (bestLv >= RANK_B) return { en: "DANDY", jp: "- 伊達男 -" };
+  }
+  if (bestKey === 'mind') {
+    if (bestLv >= RANK_S) return { en: "SAINT", jp: "- 聖人 -" };
+    if (bestLv >= RANK_A) return { en: "GURU", jp: "- 導師 -" };
+    if (bestLv >= RANK_B) return { en: "SEEKER", jp: "- 求道者 -" };
+  }
+  if (bestKey === 'intel') {
+    if (bestLv >= RANK_S) return { en: "ORACLE", jp: "- 予言者 -" };
+    if (bestLv >= RANK_A) return { en: "STRATEGIST", jp: "- 軍師 -" };
+    if (bestLv >= RANK_B) return { en: "ANALYST", jp: "- 分析官 -" };
+  }
+  if (bestKey === 'disc') {
+    if (bestLv >= RANK_S) return { en: "EXECUTOR", jp: "- 執行者 -" };
+    if (bestLv >= RANK_A) return { en: "MACHINE", jp: "- 精密機械 -" };
+    if (bestLv >= RANK_B) return { en: "SOLDIER", jp: "- 兵士 -" };
+  }
+
   return { en: "NOVICE", jp: "- 原石 -" };
 };
 
@@ -63,19 +157,16 @@ function App() {
   const [exp, setExp] = useState<ExpData>(() => {
     const saved = localStorage.getItem("the-man-exp");
     if (saved) return JSON.parse(saved);
-    return { body: 50, looks: 0, mind: 0, intel: 0, disc: 0 };
+    return { body: 0, looks: 0, mind: 0, intel: 0, disc: 0 };
   });
 
   useEffect(() => {
     localStorage.setItem("the-man-exp", JSON.stringify(exp));
   }, [exp]);
 
-  // モーダルの開閉管理
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [activeCategory, setActiveCategory] = useState<'body' | 'looks' | 'intel' | 'mind' | 'disc'>('body');
 
-  // レベル計算
   const currentLevels = useMemo(() => ({
     body: calculateLevel(exp.body),
     looks: calculateLevel(exp.looks),
@@ -85,9 +176,10 @@ function App() {
   }), [exp]);
 
   const title = useMemo(() => determineTitle(exp), [exp]);
-  const avatarUrl = `https://placehold.co/200x200/000000/d4af37?text=${title.en.replace(' ', '+')}&font=playfair-display`;
 
-  // ▼ 引数の型修正： 'intel' を追加しました！
+  // 画像パスの取得 (エラーハンドリングなしのシンプル版)
+  const avatarUrl = getAvatarPath(title.en);
+
   const handleComplete = (category: 'body' | 'looks' | 'intel' | 'mind' | 'disc', earnedExp: number, message: string) => {
     setExp(prev => ({
       ...prev,
@@ -122,7 +214,8 @@ function App() {
   const chartOptions = {
     scales: {
       r: {
-        min: 0, max: 100, // 必要に応じて上限調整
+        min: 0,
+        max: 1000,
         grid: { color: '#333' },
         angleLines: { color: '#333' },
         pointLabels: { color: '#d4af37', font: { family: "'Cinzel', serif" } },
@@ -142,7 +235,7 @@ function App() {
       <div className="container">
         <div className="rank-section">
           <div className="avatar-container">
-            <img src={avatarUrl} alt="Avatar" className="avatar-image" />
+            <img src={avatarUrl} alt={title.en} className="avatar-image" />
           </div>
           <div className="rank-label">CURRENT TITLE</div>
           <div className="rank-title">{title.en}</div>
@@ -159,26 +252,18 @@ function App() {
 
           <div className="xp-container">
             <div className="xp-info">
-              <span>INTEL LEVEL</span>
-              <span style={{ color: 'var(--gold-main)', fontSize: '1.2rem' }}>Lv.{currentLevels.intel}</span>
+              <span>TOTAL LV</span>
+              <span style={{ color: 'var(--gold-main)', fontSize: '1.2rem' }}>
+                Lv.{Object.values(currentLevels).reduce((a, b) => a + b, 0)}
+              </span>
             </div>
             <div className="xp-bar-bg">
               <div className="xp-bar-fill" style={{ width: `100%` }}></div>
             </div>
-            <div style={{ textAlign: 'right', fontSize: '0.8rem', color: '#666', marginTop: '5px' }}>
-              Total EXP: {exp.intel}
-            </div>
           </div>
         </div>
 
-        {/* アクションボタンエリア */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '10px',
-          marginBottom: '30px',
-          flexWrap: 'wrap' /* ← これを追加！スマホで2行〜3行に綺麗に並びます */
-        }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '30px', flexWrap: 'wrap' }}>
           <button
             className="action-btn"
             onClick={() => { setActiveCategory('body'); setIsModalOpen(true); }}
@@ -194,7 +279,6 @@ function App() {
             ✨ REFINE LOOKS
           </button>
 
-          {/* ▼ 追加: INTELボタン */}
           <button
             className="action-btn"
             style={{ filter: 'hue-rotate(90deg)' }}
@@ -205,7 +289,7 @@ function App() {
 
           <button
             className="action-btn"
-            style={{ filter: 'hue-rotate(270deg)' }} /* 紫色になります */
+            style={{ filter: 'hue-rotate(270deg)' }}
             onClick={() => { setActiveCategory('mind'); setIsModalOpen(true); }}
           >
             🧘 CALM MIND
@@ -213,7 +297,7 @@ function App() {
 
           <button
             className="action-btn"
-            style={{ filter: 'hue-rotate(330deg) saturate(1.5)' }} /* 鮮やかな赤色 */
+            style={{ filter: 'hue-rotate(330deg) saturate(1.5)' }}
             onClick={() => { setActiveCategory('disc'); setIsModalOpen(true); }}
           >
             🛡️ KEEP DISC
@@ -221,7 +305,7 @@ function App() {
         </div>
       </div>
 
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '100px' }}>
         <button className="reset-btn" onClick={handleReset}>
           ⚠ DATA RESET
         </button>
