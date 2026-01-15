@@ -12,6 +12,7 @@ import { Radar } from 'react-chartjs-2';
 import './App.css';
 import { ActionModal } from './components/ActionModal';
 import { LoadingScreen } from './components/LoadingScreen';
+import { BodyController } from './components/BodyController'; // ▼ 追加
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
@@ -31,12 +32,11 @@ const calculateLevel = (exp: number) => {
 
 // 画像のパスを動的に生成する関数
 const getAvatarPath = (titleEn: string) => {
-  // スペースをアンダーバーに置換 (例: "THE ONE" → "THE_ONE")
   const fileName = titleEn.replace(/ /g, '_');
   return new URL(`./assets/avatars/${fileName}.png`, import.meta.url).href;
 };
 
-// === 称号判定ロジック (Lv.1000スケール対応版) ===
+// === 称号判定ロジック ===
 const determineTitle = (stats: ExpData) => {
   const levels = {
     body: calculateLevel(stats.body),
@@ -48,29 +48,23 @@ const determineTitle = (stats: ExpData) => {
 
   const vals = Object.values(levels);
   const minLv = Math.min(...vals);
-
-  // === 閾値設定 (MAX Lv.1000) ===
   const RANK_S = 900;
   const RANK_A = 750;
   const RANK_B = 500;
 
-  // --- 5. 神クラス (5つ全てのレベルで判定) ---
   if (minLv >= RANK_S) return { en: "THE ONE", jp: "- 全能の神 -" };
   if (minLv >= RANK_A) return { en: "GIGACHAD", jp: "- 完全無欠 -" };
   if (minLv >= RANK_B) return { en: "LEGEND", jp: "- 生ける伝説 -" };
 
-  // --- 複合クラス判定用 ---
   const sRankKeys = (Object.keys(levels) as (keyof ExpData)[]).filter(
     key => levels[key] >= RANK_S
   );
   const sCount = sRankKeys.length;
 
-  // --- 4. 準神クラス (4つがランクS) ---
   if (sCount === 4) {
     const missing = (Object.keys(levels) as (keyof ExpData)[]).find(
       key => levels[key] < RANK_S
     );
-
     switch (missing) {
       case 'mind': return { en: "GLASS ACE", jp: "- 悲劇の天才 -" };
       case 'intel': return { en: "BERSERKER", jp: "- 破壊神 -" };
@@ -80,13 +74,11 @@ const determineTitle = (stats: ExpData) => {
     }
   }
 
-  // --- 3. 超人クラス (3つがランクS) ---
   if (sCount === 3) {
     const missing = (Object.keys(levels) as (keyof ExpData)[]).filter(
       key => levels[key] < RANK_S
     );
     const missingKey = missing.sort().join('-');
-
     switch (missingKey) {
       case 'disc-intel': return { en: "HERO", jp: "- 英雄 -" };
       case 'disc-mind': return { en: "PRINCE", jp: "- 王子 -" };
@@ -101,10 +93,8 @@ const determineTitle = (stats: ExpData) => {
     }
   }
 
-  // --- 2. 実力者クラス (2つがランクS) ---
   if (sCount === 2) {
     const activeKey = sRankKeys.sort().join('-');
-
     switch (activeKey) {
       case 'body-looks': return { en: "STAR", jp: "- 銀幕の英雄 -" };
       case 'body-mind': return { en: "SAMURAI", jp: "- 武士 -" };
@@ -119,7 +109,6 @@ const determineTitle = (stats: ExpData) => {
     }
   }
 
-  // --- 1. 単独クラス判定 ---
   const bestKey = (Object.keys(levels) as (keyof ExpData)[]).reduce((a, b) =>
     levels[a] > levels[b] ? a : b
   );
@@ -160,7 +149,9 @@ function App() {
     if (saved) return JSON.parse(saved);
     return { body: 0, looks: 0, mind: 0, intel: 0, disc: 0 };
   });
+
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'home' | 'train'>('home'); // ▼ タブ切り替え用
 
   useEffect(() => {
     localStorage.setItem("the-man-exp", JSON.stringify(exp));
@@ -178,8 +169,6 @@ function App() {
   }), [exp]);
 
   const title = useMemo(() => determineTitle(exp), [exp]);
-
-  // 画像パスの取得 (エラーハンドリングなしのシンプル版)
   const avatarUrl = getAvatarPath(title.en);
 
   const handleComplete = (category: 'body' | 'looks' | 'intel' | 'mind' | 'disc', earnedExp: number, message: string) => {
@@ -221,98 +210,86 @@ function App() {
 
   return (
     <>
-      {/* ロード画面 (isLoadingがtrueの時だけ表示、あるいはフェードアウト演出中は重ねる) */}
-      {isLoading && (
-        <LoadingScreen onFinish={() => setIsLoading(false)} />
-      )}
-
-      {/* メインアプリ (ロードが終わったら表示、でも裏でレンダリングしておいた方がスムーズかも) */}
-      {/* 今回はシンプルに、ロード画面が消えたら操作可能にするスタイルでいきます */}
+      {isLoading && <LoadingScreen onFinish={() => setIsLoading(false)} />}
 
       <div style={{ opacity: isLoading ? 0 : 1, transition: 'opacity 1s' }}>
         <header>
           <div className="app-logo">THE MAN</div>
         </header>
 
-        <div className="container"></div>
-        <div className="rank-section">
-          <div className="avatar-container">
-            <img src={avatarUrl} alt={title.en} className="avatar-image" />
-          </div>
-          <div className="rank-label">CURRENT TITLE</div>
-          <div className="rank-title">{title.en}</div>
-          <div className="rank-sub">{title.jp}</div>
-        </div>
+        <div className="container">
 
-        <div className="card">
-          <div className="corner tl"></div><div className="corner tr"></div>
-          <div className="corner bl"></div><div className="corner br"></div>
+          {/* === HOMEタブ: ステータス証明書 === */}
+          {activeTab === 'home' && (
+            <div style={{ animation: 'fadeIn 0.5s ease' }}>
+              <div className="rank-section">
+                <div className="avatar-container">
+                  <img src={avatarUrl} alt={title.en} className="avatar-image" />
+                </div>
+                <div className="rank-label">CURRENT TITLE</div>
+                <div className="rank-title">{title.en}</div>
+                <div className="rank-sub">{title.jp}</div>
+              </div>
 
-          <div className="chart-box">
-            <Radar data={chartData} options={chartOptions} />
-          </div>
+              <div className="card">
+                <div className="corner tl"></div><div className="corner tr"></div>
+                <div className="corner bl"></div><div className="corner br"></div>
 
-          <div className="xp-container">
-            <div className="xp-info">
-              <span>TOTAL LV</span>
-              <span style={{ color: 'var(--gold-main)', fontSize: '1.2rem' }}>
-                Lv.{Object.values(currentLevels).reduce((a, b) => a + b, 0)}
-              </span>
+                <div className="chart-box">
+                  <Radar data={chartData} options={chartOptions} />
+                </div>
+
+                <div className="xp-container">
+                  <div className="xp-info">
+                    <span>TOTAL LV</span>
+                    <span style={{ color: 'var(--gold-main)', fontSize: '1.2rem' }}>
+                      Lv.{Object.values(currentLevels).reduce((a, b) => a + b, 0)}
+                    </span>
+                  </div>
+                  <div className="xp-bar-bg">
+                    <div className="xp-bar-fill" style={{ width: `100%` }}></div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="xp-bar-bg">
-              <div className="xp-bar-fill" style={{ width: `100%` }}></div>
-            </div>
-          </div>
+          )}
+
+          {/* === TRAINタブ: 人体コントローラー === */}
+          {activeTab === 'train' && (
+            <BodyController
+              onSelect={(category) => {
+                setActiveCategory(category);
+                setIsModalOpen(true);
+              }}
+            />
+          )}
+
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '30px', flexWrap: 'wrap' }}>
+        {/* === 下部ナビゲーション === */}
+        <div className="bottom-nav">
           <button
-            className="action-btn"
-            onClick={() => { setActiveCategory('body'); setIsModalOpen(true); }}
+            className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}
+            onClick={() => setActiveTab('home')}
           >
-            ⚔️ TRAIN BODY
+            <span>STATUS</span>
           </button>
 
           <button
-            className="action-btn"
-            style={{ filter: 'hue-rotate(180deg)' }}
-            onClick={() => { setActiveCategory('looks'); setIsModalOpen(true); }}
+            className={`nav-item ${activeTab === 'train' ? 'active' : ''}`}
+            onClick={() => setActiveTab('train')}
           >
-            ✨ REFINE LOOKS
-          </button>
-
-          <button
-            className="action-btn"
-            style={{ filter: 'hue-rotate(90deg)' }}
-            onClick={() => { setActiveCategory('intel'); setIsModalOpen(true); }}
-          >
-            🧠 BOOST INTEL
-          </button>
-
-          <button
-            className="action-btn"
-            style={{ filter: 'hue-rotate(270deg)' }}
-            onClick={() => { setActiveCategory('mind'); setIsModalOpen(true); }}
-          >
-            🧘 CALM MIND
-          </button>
-
-          <button
-            className="action-btn"
-            style={{ filter: 'hue-rotate(330deg) saturate(1.5)' }}
-            onClick={() => { setActiveCategory('disc'); setIsModalOpen(true); }}
-          >
-            🛡️ KEEP DISC
+            <span>TRAIN</span>
           </button>
         </div>
+
+        <ActionModal
+          isOpen={isModalOpen}
+          category={activeCategory}
+          onClose={() => setIsModalOpen(false)}
+          onComplete={handleComplete}
+        />
       </div>
-
-      <ActionModal
-        isOpen={isModalOpen}
-        category={activeCategory}
-        onClose={() => setIsModalOpen(false)}
-        onComplete={handleComplete}
-      />
     </>
   );
 }

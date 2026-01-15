@@ -511,3 +511,134 @@ header {
     transform: translateY(0);
   }
 }
+
+/* src/App.css の一番下に追記 */
+
+/* === 人体コントローラー === */
+.body-controller-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  animation: fadeIn 0.5s ease;
+  margin-bottom: 20px;
+}
+
+.controller-title {
+  color: #fff;
+  font-family: var(--font-eng);
+  letter-spacing: 3px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.human-graphic {
+  width: 300px;
+  height: 500px;
+  /* SVGのサイズに合わせる */
+  position: relative;
+  background-image:
+    linear-gradient(rgba(50, 50, 50, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(50, 50, 50, 0.3) 1px, transparent 1px);
+  background-size: 50px 50px;
+  border: 1px solid #333;
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8) inset;
+}
+
+.human-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.body-part {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+/* ホバー時の発光エフェクト */
+.body-part:hover circle,
+.body-part:hover rect,
+.body-part:hover path,
+.body-part:hover line {
+  filter: drop-shadow(0 0 10px currentColor);
+  fill-opacity: 0.4;
+}
+
+.body-part:active {
+  transform: scale(0.98);
+  transform-origin: center;
+}
+
+.hint-text {
+  color: #666;
+  font-family: var(--font-jp);
+  font-size: 0.8rem;
+  margin-top: 15px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
+}
+
+/* === 下部ナビゲーションバー === */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  /* 少し高さを確保 */
+  background: rgba(5, 5, 5, 0.95);
+  border-top: 1px solid var(--gold-dark);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 900;
+  backdrop-filter: blur(10px);
+  padding-bottom: 10px;
+  /* iPhoneの下部バー対策 */
+}
+
+.nav-item {
+  background: none;
+  border: none;
+  color: #555;
+  font-family: var(--font-eng);
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nav-item.active {
+  color: var(--gold-main);
+  text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+}
+
+.nav-icon {
+  font-size: 1.8rem;
+  margin-bottom: 2px;
+}
+
+/* メインコンテナの余白調整 */
+.container {
+  /* ナビゲーションバーとかぶらないように下を空ける */
+  padding-bottom: 120px !important;
+}
