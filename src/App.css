@@ -51,7 +51,6 @@ header {
   border-bottom: 1px solid #333;
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(5px);
-  margin-bottom: 20px;
   position: fixed;
   top: 0;
   z-index: 100;
@@ -66,19 +65,45 @@ header {
 
 /* === メインコンテナ === */
 .container {
-  width: 90%;
-  max-width: 400px;
+  width: 100%;
+  /* 画面いっぱいに使う */
+  /* max-width は削除して制限なしに */
+
   padding-top: 80px;
-  /* ヘッダー分 */
-  padding-bottom: 100px;
-  /* フッター分 */
+  padding-bottom: 120px !important;
+  /* 下部ナビゲーション用 */
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* === 称号エリア === */
+/* === 称号・アバターエリア === */
 .rank-section {
   text-align: center;
   margin-bottom: 20px;
+  width: 100%;
   animation: fadeIn 1s ease;
+}
+
+.avatar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 10px;
+  width: 150px;
+  height: 150px;
+  position: relative;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 画像を枠いっぱいに綺麗に収める */
+  border-radius: 50%;
+  border: 4px solid var(--gold-main);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
 }
 
 .rank-label {
@@ -90,7 +115,9 @@ header {
 }
 
 .rank-title {
-  font-size: 2.8rem;
+  /* 画面幅に合わせて文字サイズを自動調整 (レスポンシブ対応) */
+  font-size: clamp(2rem, 10vw, 3.5rem);
+
   line-height: 1;
   margin: 0;
   background: var(--gold-gradient);
@@ -101,6 +128,8 @@ header {
   font-weight: 900;
   text-transform: uppercase;
   filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3));
+  width: 100%;
+  overflow-wrap: break-word;
 }
 
 .rank-sub {
@@ -112,32 +141,6 @@ header {
   opacity: 0.8;
 }
 
-/* === アバター === */
-.avatar-container {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 15px;
-  border-radius: 50%;
-  border: 3px solid var(--gold-main);
-  background: #000;
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-  overflow: hidden;
-  position: relative;
-  transition: all 0.5s ease;
-}
-
-.avatar-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top;
-}
-
-.rank-section:hover .avatar-container {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px rgba(212, 175, 55, 0.8);
-}
-
 /* === チャートカード === */
 .card {
   background: var(--card-bg);
@@ -147,6 +150,9 @@ header {
   margin-bottom: 30px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   position: relative;
+  width: 90%;
+  max-width: 400px;
+  /* カード自体は広がりすぎないように制限 */
 }
 
 /* 四隅の金装飾 */
@@ -190,6 +196,9 @@ header {
   position: relative;
   height: 300px;
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* XPゲージ */
@@ -234,25 +243,6 @@ header {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* === アクションボタン === */
-.action-btn {
-  background: var(--gold-gradient);
-  border: none;
-  padding: 15px 30px;
-  color: #000;
-  font-family: var(--font-num);
-  font-weight: bold;
-  font-size: 1rem;
-  letter-spacing: 2px;
-  cursor: pointer;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.action-btn:active {
-  transform: scale(0.95);
 }
 
 /* === モーダル共通 === */
@@ -366,7 +356,7 @@ header {
   cursor: pointer;
 }
 
-/* === カスタムチェックボックス (LOOKS用) === */
+/* === カスタムチェックボックス === */
 .checklist-container {
   display: flex;
   flex-direction: column;
@@ -376,19 +366,22 @@ header {
 .checkbox-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: #111;
-  padding: 10px;
+  padding: 12px 15px;
   border: 1px solid #333;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 1rem;
+  font-family: var(--font-jp);
+  line-height: 1;
+  color: #ccc;
 }
 
 .checkbox-row:hover {
   border-color: var(--gold-main);
 }
 
-/* チェックボックスのデザインカスタマイズ */
 .checkbox-row input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -432,8 +425,6 @@ header {
   transform: translate(-50%, -50%) rotate(45deg) scale(1);
 }
 
-/* src/App.css に追記 */
-
 /* === ロード画面 === */
 .loading-overlay {
   position: fixed;
@@ -442,19 +433,14 @@ header {
   width: 100%;
   height: 100vh;
   background-color: #000;
-  /* 完全な黒 */
   background-image: var(--carbon-pattern);
-  /* お好みでカーボン柄も可 */
   z-index: 9999;
-  /* 全ての上に表示 */
   display: flex;
   justify-content: center;
   align-items: center;
   transition: opacity 0.5s ease-out;
-  /* フェードアウト用 */
 }
 
-/* フェードアウト時のクラス */
 .loading-overlay.fade-out {
   opacity: 0;
   pointer-events: none;
@@ -495,7 +481,6 @@ header {
   font-size: 1rem;
   color: var(--gold-main);
   text-align: right;
-  /* 右寄せ */
   margin-right: 10px;
   font-weight: bold;
 }
@@ -511,8 +496,6 @@ header {
     transform: translateY(0);
   }
 }
-
-/* src/App.css の一番下に追記 */
 
 /* === 人体コントローラー === */
 .body-controller-container {
@@ -536,7 +519,6 @@ header {
 .human-graphic {
   width: 300px;
   height: 500px;
-  /* SVGのサイズに合わせる */
   position: relative;
   background-image:
     linear-gradient(rgba(50, 50, 50, 0.3) 1px, transparent 1px),
@@ -600,7 +582,6 @@ header {
   left: 0;
   width: 100%;
   height: 80px;
-  /* 少し高さを確保 */
   background: rgba(5, 5, 5, 0.95);
   border-top: 1px solid var(--gold-dark);
   display: flex;
@@ -609,7 +590,6 @@ header {
   z-index: 900;
   backdrop-filter: blur(10px);
   padding-bottom: 10px;
-  /* iPhoneの下部バー対策 */
 }
 
 .nav-item {
@@ -635,10 +615,4 @@ header {
 .nav-icon {
   font-size: 1.8rem;
   margin-bottom: 2px;
-}
-
-/* メインコンテナの余白調整 */
-.container {
-  /* ナビゲーションバーとかぶらないように下を空ける */
-  padding-bottom: 120px !important;
 }
