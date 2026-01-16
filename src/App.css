@@ -1,5 +1,11 @@
 /* src/App.css */
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 /* === 変数定義 === */
 :root {
   --bg-color: #050505;
