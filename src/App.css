@@ -152,13 +152,19 @@ header {
   background: var(--card-bg);
   border: 2px solid #333;
   border-radius: 4px;
-  padding: 20px;
+
+  /* ▼▼▼ ここを修正（広げる！） ▼▼▼ */
+  width: 96%;
+  /* 90% -> 96% に変更（ほぼ画面いっぱい） */
+  max-width: 500px;
+  /* 400px -> 500px に変更（大きなスマホでも広がるように） */
+  padding: 15px;
+  /* 20px -> 15px に少し減らして、中身のスペースを確保 */
+  /* ▲▲▲ ここまで ▲▲▲ */
+
   margin-bottom: 30px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   position: relative;
-  width: 90%;
-  max-width: 400px;
-  /* カード自体は広がりすぎないように制限 */
 }
 
 /* 四隅の金装飾 */
