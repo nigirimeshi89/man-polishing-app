@@ -12,7 +12,7 @@ import { Radar } from 'react-chartjs-2';
 import './App.css';
 import { ActionModal } from './components/ActionModal';
 import { LoadingScreen } from './components/LoadingScreen';
-import { BodyController } from './components/BodyController'; // ▼ 追加
+import { BodyController } from './components/BodyController';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
@@ -24,19 +24,16 @@ type ExpData = {
   disc: number;
 };
 
-// Lv = √ (EXP / 5) (上限1000)
 const calculateLevel = (exp: number) => {
   const level = Math.floor(Math.sqrt(exp / 5));
   return level > 1000 ? 1000 : level;
 };
 
-// 画像のパスを動的に生成する関数
 const getAvatarPath = (titleEn: string) => {
   const fileName = titleEn.replace(/ /g, '_');
   return new URL(`./assets/avatars/${fileName}.png`, import.meta.url).href;
 };
 
-// === 称号判定ロジック ===
 const determineTitle = (stats: ExpData) => {
   const levels = {
     body: calculateLevel(stats.body),
@@ -151,7 +148,8 @@ function App() {
   });
 
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'home' | 'train'>('home'); // ▼ タブ切り替え用
+  const [activeTab, setActiveTab] = useState<'home' | 'train'>('home');
+  const [isFlipped, setIsFlipped] = useState(false); // ▼ カードの回転状態
 
   useEffect(() => {
     localStorage.setItem("the-man-exp", JSON.stringify(exp));
@@ -200,11 +198,18 @@ function App() {
         max: 1000,
         grid: { color: '#333' },
         angleLines: { color: '#333' },
-        pointLabels: { color: '#d4af37', font: { family: "'Cinzel', serif" } },
+        pointLabels: {
+          color: '#d4af37',
+          font: { family: "'Cinzel', serif", size: 10 }
+        },
         ticks: { display: false }
       }
     },
-    plugins: { legend: { display: false } },
+    // 裏面はリストがあるのでツールチップは不要（オフにする）
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: false }
+    },
     maintainAspectRatio: false
   };
 
@@ -219,42 +224,82 @@ function App() {
 
         <div className="container">
 
-          {/* === HOMEタブ: ステータス証明書 === */}
+          {/* === HOMEタブ: カード表示 === */}
           {activeTab === 'home' && (
-            <div style={{ animation: 'fadeIn 0.5s ease' }}>
-              <div className="rank-section">
-                <div className="avatar-container">
-                  <img src={avatarUrl} alt={title.en} className="avatar-image" />
-                </div>
-                <div className="rank-label">CURRENT TITLE</div>
-                <div className="rank-title">{title.en}</div>
-                <div className="rank-sub">{title.jp}</div>
-              </div>
+            <div style={{ animation: 'fadeIn 0.5s ease', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-              <div className="card">
-                <div className="corner tl"></div><div className="corner tr"></div>
-                <div className="corner bl"></div><div className="corner br"></div>
+              {/* ▼▼▼ カードエリア ▼▼▼ */}
+              <div
+                className={`flip-card-container ${isFlipped ? 'flipped' : ''}`}
+                onClick={() => setIsFlipped(!isFlipped)}
+              >
+                <div className="flip-card-inner">
 
-                <div className="chart-box">
-                  <Radar data={chartData} options={chartOptions} />
-                </div>
+                  {/* --- 表面 (IDカード風) --- */}
+                  <div className="flip-card-front">
+                    <div className="avatar-container" style={{ width: '180px', height: '180px' }}>
+                      <img src={avatarUrl} alt={title.en} className="avatar-image" />
+                    </div>
 
-                <div className="xp-container">
-                  <div className="xp-info">
-                    <span>TOTAL LV</span>
-                    <span style={{ color: 'var(--gold-main)', fontSize: '1.2rem' }}>
-                      Lv.{Object.values(currentLevels).reduce((a, b) => a + b, 0)}
-                    </span>
+                    <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                      <div className="rank-label">CURRENT TITLE</div>
+                      <div className="rank-title">{title.en}</div>
+                      <div className="rank-sub">{title.jp}</div>
+                    </div>
+
+                    <div style={{ marginTop: 'auto', marginBottom: '20px' }}>
+                      <div className="xp-info" style={{ justifyContent: 'center', gap: '10px' }}>
+                        <span>TOTAL LEVEL</span>
+                        <span style={{ color: 'var(--gold-main)', fontSize: '1.5rem' }}>
+                          {Object.values(currentLevels).reduce((a, b) => a + b, 0)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="tap-hint">TAP CARD TO FLIP ↻</div>
                   </div>
-                  <div className="xp-bar-bg">
-                    <div className="xp-bar-fill" style={{ width: `100%` }}></div>
+
+                  {/* --- 裏面 (データ詳細) --- */}
+                  <div className="flip-card-back">
+                    <div style={{ width: '100%', height: '220px' }}>
+                      <Radar data={chartData} options={chartOptions} />
+                    </div>
+
+                    {/* 詳細ステータスリスト */}
+                    <div className="status-list">
+                      <div className="status-row">
+                        <span className="status-label">BODY</span>
+                        <span className="status-val">Lv.{currentLevels.body} <small style={{ color: '#666' }}>(Exp.{exp.body})</small></span>
+                      </div>
+                      <div className="status-row">
+                        <span className="status-label">LOOKS</span>
+                        <span className="status-val">Lv.{currentLevels.looks} <small style={{ color: '#666' }}>(Exp.{exp.looks})</small></span>
+                      </div>
+                      <div className="status-row">
+                        <span className="status-label">INTEL</span>
+                        <span className="status-val">Lv.{currentLevels.intel} <small style={{ color: '#666' }}>(Exp.{exp.intel})</small></span>
+                      </div>
+                      <div className="status-row">
+                        <span className="status-label">MIND</span>
+                        <span className="status-val">Lv.{currentLevels.mind} <small style={{ color: '#666' }}>(Exp.{exp.mind})</small></span>
+                      </div>
+                      <div className="status-row">
+                        <span className="status-label">DISC</span>
+                        <span className="status-val">Lv.{currentLevels.disc} <small style={{ color: '#666' }}>(Exp.{exp.disc})</small></span>
+                      </div>
+                    </div>
+
+                    <div className="tap-hint">TAP TO BACK ↻</div>
                   </div>
+
                 </div>
               </div>
+              {/* ▲▲▲ カードエリア終了 ▲▲▲ */}
+
             </div>
           )}
 
-          {/* === TRAINタブ: 人体コントローラー === */}
+          {/* === TRAINタブ === */}
           {activeTab === 'train' && (
             <BodyController
               onSelect={(category) => {
